@@ -1,0 +1,61 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+before_script:
+  - apt-get update -y
+  - apt-get install -y curl gnupg
+  - curl -sL https://deb.nodesource.com/setup_14.x | bash -
+  - apt-get install -y nodejs
+
+build_backend:
+  stage: build
+  script:
+    - cd backend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - backend/dist/
+
+test_backend:
+  stage: test
+  script:
+    - cd backend
+    - npm install
+    - npm run test
+
+deploy_backend:
+  stage: deploy
+  script:
+    - ansible-playbook -i inventory deploy_backend.yml
+  only:
+    - master
+
+build_frontend:
+  stage: build
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+
+test_frontend:
+  stage: test
+  script:
+    - cd frontend
+    - npm install
+    - npm run test
+
+deploy_frontend:
+  stage: deploy
+  script:
+    - ansible-playbook -i inventory deploy_frontend.yml
+  only:
+    - master
